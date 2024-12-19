@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include "malloc.h"
 
-static chunk minheap[MAX_HEAP_SIZE];
-static size_t free_chunks = 0; 
+#define MAX_HEAP_SIZE 1024  
+
+chunk minheap[MAX_HEAP_SIZE];
+unsigned int free_chunks = 0; 
 
 void* xmalloc(size_t size) {
     chunk allocated_chunk = {0, NULL};
@@ -84,26 +85,31 @@ void* xrealloc(void *ptr, size_t new_size) {
         return NULL;
     }
 
-    memcpy(new_block, ptr, current_chunk -> size);
-    xfree(ptr);
+    size_t copy_size = (current_chunk -> size < new_size) ? current_chunk -> size : new_size;
+    memcpy(new_block, ptr, copy_size);
 
+    if (current_chunk -> size > new_size) {
+        ((char *)new_block)[new_size - 1] = '\0';
+    }
+
+    xfree(ptr); 
     return new_block;
 }
 
 
-static void swap(chunk* chunk_one, chunk* chunk_two) {
+void swap(chunk* chunk_one, chunk* chunk_two) {
     chunk temp = *chunk_one;
     *chunk_one = *chunk_two;
     *chunk_two = temp;
 }
 
-static size_t parent(size_t heap_chunk) {
+unsigned int parent(unsigned int heap_chunk) {
     return (heap_chunk - 1) / 2;
 }
-static size_t left_child(size_t heap_chunk) {
+unsigned int left_child(unsigned int heap_chunk) {
     return 2 * heap_chunk + 1;
 }
-static size_t right_child(size_t heap_chunk) {
+unsigned int right_child(unsigned int heap_chunk) {
     return 2 * heap_chunk + 2;
 }
 void heap_insert(chunk place_chunk) {
